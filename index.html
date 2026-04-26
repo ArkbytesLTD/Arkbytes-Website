@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arkbytes — Digital Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --water: #38bdf8;
+      --water-dim: #0ea5e9;
+      --water-deep: #0369a1;
+      --water-pale: #e0f2fe;
+      --water-glow: rgba(56,189,248,0.18);
+      --ink: #060d14;
+      --ink-mid: #0d1b2a;
+      --ink-soft: #1a2e40;
+      --text: #cce9f7;
+      --muted: #5b8ba8;
+      --white: #f0faff;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── GRID BG ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 3rem;
+      background: rgba(6,13,20,0.72);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(56,189,248,0.08);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .logo span { color: var(--water); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2.4rem;
+    }
+
+    nav ul a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    nav ul a:hover { color: var(--water); }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 3rem 5rem;
+      overflow: hidden;
+    }
+
+    .hero-orb {
+      position: absolute;
+      width: 680px; height: 680px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    .hero-orb-2 {
+      position: absolute;
+      width: 320px; height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14,165,233,0.10) 0%, transparent 70%);
+      top: 20%; right: 10%;
+      pointer-events: none;
+      animation: pulse 9s ease-in-out infinite reverse;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%,-50%) scale(1.12); opacity: 0.7; }
+    }
+
+    .hero-tag {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--water);
+      margin-bottom: 1.6rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    .hero-tag::before {
+      content: '//';
+      margin-right: 0.6em;
+      color: var(--muted);
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3.2rem, 8vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: var(--white);
+      max-width: 900px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.35s forwards;
+    }
+
+    h1 .accent { color: var(--water); }
+
+    .hero-sub {
+      margin-top: 2rem;
+      max-width: 480px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.5s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.65s forwards;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.8rem;
+      border-radius: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      transition: all 0.22s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--water);
+      color: var(--ink);
+      font-weight: 400;
+      border: 2px solid var(--water);
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--water);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--water);
+      border: 2px solid rgba(56,189,248,0.3);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--water);
+      background: var(--water-glow);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid rgba(56,189,248,0.1);
+      border-bottom: 1px solid rgba(56,189,248,0.1);
+      overflow: hidden;
+      padding: 1rem 0;
+      background: rgba(56,189,248,0.03);
+    }
+
+    .marquee {
+      display: flex;
+      gap: 3rem;
+      width: max-content;
+      animation: scroll 22s linear infinite;
+    }
+
+    .marquee span {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .marquee span.dot {
+      color: var(--water);
+      letter-spacing: 0;
+    }
+
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 7rem 3rem;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--water);
+      margin-bottom: 1rem;
+    }
+
+    .section-label::before { content: '// '; color: var(--muted); }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.03em;
+      color: var(--white);
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── EMPTY STATE CARDS ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .card-empty {
+      border: 1px dashed rgba(56,189,248,0.18);
+      border-radius: 4px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      background: rgba(56,189,248,0.02);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .card-empty:hover {
+      border-color: rgba(56,189,248,0.35);
+      background: rgba(56,189,248,0.05);
+    }
+
+    .card-empty .icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+      opacity: 0.4;
+    }
+
+    .card-empty p { color: var(--muted); font-size: 0.78rem; }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── REPO CARDS ── */
+    .repo-card {
+      border: 1px solid rgba(56,189,248,0.15);
+      border-radius: 4px;
+      padding: 2rem 1.8rem;
+      background: rgba(56,189,248,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: border-color 0.25s, transform 0.25s, background 0.25s;
+      text-decoration: none;
+    }
+
+    .repo-card:hover {
+      border-color: var(--water-dim);
+      background: rgba(56,189,248,0.05);
+      transform: translateY(-3px);
+    }
+
+    .repo-card-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--white);
+    }
+
+    .repo-card-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .repo-card-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .repo-meta-item {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .repo-meta-item .lang-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--water);
+      display: inline-block;
+    }
+
+    .repo-card-arrow {
+      font-size: 0.75rem;
+      color: var(--water);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .repo-card:hover .repo-card-arrow { opacity: 1; }
+
+
+    /* ── TEAM ── */
+    #team { background: rgba(56,189,248,0.02); }
+
+    .team-grid {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 3rem;
+    }
+
+    .team-card {
+      border: 1px solid rgba(56,189,248,0.15);
+      border-radius: 4px;
+      padding: 2.5rem 2rem;
+      min-width: 220px;
+      background: rgba(56,189,248,0.03);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .team-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(56,189,248,0.06), transparent);
+      pointer-events: none;
+    }
+
+    .team-card:hover {
+      border-color: var(--water-dim);
+      transform: translateY(-3px);
+    }
+
+    .team-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--water-dim), var(--water-deep));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--ink);
+      margin-bottom: 1.2rem;
+    }
+
+    .team-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+
+    .team-role {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--water);
+    }
+
+    /* ── CONTACT ── */
+    #contact {
+      border-top: 1px solid rgba(56,189,248,0.08);
+    }
+
+    .contact-inner {
+      max-width: 560px;
+    }
+
+    .contact-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-top: 2rem;
+      color: var(--water);
+      text-decoration: none;
+      font-size: 1rem;
+      border-bottom: 1px solid rgba(56,189,248,0.25);
+      padding-bottom: 0.2rem;
+      transition: border-color 0.2s, gap 0.2s;
+    }
+
+    .contact-link:hover {
+      border-color: var(--water);
+      gap: 1rem;
+    }
+
+    .contact-link::after { content: '→'; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding: 2rem 3rem;
+      border-top: 1px solid rgba(56,189,248,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .footer-logo span { color: var(--water); }
+
+    footer p {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ── DIVIDER ── */
+    .line-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.2), transparent);
+      margin: 0;
+    }
+
+    /* ── SCROLL INDICATOR ── */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 1s 1s forwards;
+    }
+
+    .scroll-hint .bar {
+      width: 32px; height: 1px;
+      background: var(--muted);
+    }
+
+    /* ── STATUS BADGE ── */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--water);
+      border: 1px solid rgba(56,189,248,0.25);
+      border-radius: 2px;
+      padding: 0.25rem 0.65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status .dot-live {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--water);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    /* ── VALUES ── */
+    #values {
+      background: rgba(56,189,248,0.015);
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .value-card {
+      border: 1px solid rgba(56,189,248,0.12);
+      border-radius: 4px;
+      padding: 2rem 1.8rem;
+      background: rgba(56,189,248,0.02);
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .value-card:hover {
+      border-color: rgba(56,189,248,0.3);
+      transform: translateY(-3px);
+    }
+
+    .value-icon {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .value-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .value-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .values-verse {
+      margin-top: 3rem;
+      border-left: 2px solid var(--water);
+      padding-left: 1.5rem;
+      max-width: 520px;
+    }
+
+    .values-verse blockquote {
+      font-size: 0.92rem;
+      color: var(--text);
+      font-style: italic;
+      line-height: 1.75;
+    }
+
+    .values-verse cite {
+      display: block;
+      margin-top: 0.6rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--water);
+      font-style: normal;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 1rem 1.5rem; }
+      nav ul { gap: 1.2rem; }
+      section { padding: 5rem 1.5rem; }
+      #hero { padding: 7rem 1.5rem 4rem; }
+      footer { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">Ark<span>bytes</span></a>
+    <ul>
+      <li><a href="#apps">Web Apps</a></li>
+      <li><a href="#values">Values</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-orb"></div>
+    <div class="hero-orb-2"></div>
+
+    <div class="status">
+      <span class="dot-live"></span>
+      Building in progress
+    </div>
+
+    <p class="hero-tag">Digital Studio</p>
+    <h1>We build<br>things that<br><span class="accent">actually work.</span></h1>
+    <p class="hero-sub">Arkbytes is an independent digital studio crafting apps and web experiences with intention, precision, and clean code.</p>
+
+    <div class="hero-cta">
+      <a href="#contact" class="btn btn-primary">Get in touch</a>
+      <a href="#apps" class="btn btn-ghost">See our work</a>
+    </div>
+
+    <div class="scroll-hint">
+      <span class="bar"></span>
+      Scroll
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee">
+      <span>Web Apps</span><span class="dot">·</span>
+      <span>Digital Products</span><span class="dot">·</span>
+      <span>Clean Code</span><span class="dot">·</span>
+      <span>Web Experiences</span><span class="dot">·</span>
+      <span>Arkbytes Studio</span><span class="dot">·</span>
+      <span>Web Apps</span><span class="dot">·</span>
+      <span>Digital Products</span><span class="dot">·</span>
+      <span>Clean Code</span><span class="dot">·</span>
+      <span>Web Experiences</span><span class="dot">·</span>
+      <span>Arkbytes Studio</span><span class="dot">·</span>
+      <span>Web Apps</span><span class="dot">·</span>
+      <span>Digital Products</span><span class="dot">·</span>
+      <span>Clean Code</span><span class="dot">·</span>
+      <span>Web Experiences</span><span class="dot">·</span>
+      <span>Arkbytes Studio</span><span class="dot">·</span>
+    </div>
+  </div>
+
+  <!-- WEB APPS -->
+  <section id="apps">
+    <p class="section-label">Web Apps</p>
+    <h2>Web<br>Applications</h2>
+    <p style="color:var(--muted); max-width:460px;">Our projects, pulled live from GitHub.</p>
+    <div class="card-grid" id="repo-grid">
+      <div class="card-empty" id="repo-loading">
+        <span class="icon" style="display:inline-block; animation: spin 1.2s linear infinite;">⬡</span>
+        <strong style="color:var(--text); font-family:'Syne',sans-serif;">Loading repos…</strong>
+        <p>Fetching from GitHub.</p>
+      </div>
+    </div>
+    <div style="margin-top:2rem;">
+      <a href="https://github.com/ArkbytesLTD?tab=repositories" target="_blank" rel="noopener" class="btn btn-ghost">View all on GitHub →</a>
+    </div>
+  </section>
+
+  <div class="line-divider"></div>
+
+  <!-- VALUES -->
+  <section id="values">
+    <p class="section-label">Our Foundation</p>
+    <h2>Built on<br>Christian values.</h2>
+    <p style="color:var(--muted); max-width:500px;">Faith shapes everything we do — how we treat our clients, how we write our code, and the purpose behind what we build.</p>
+
+    <div class="values-grid">
+      <div class="value-card">
+        <span class="value-icon">✝</span>
+        <div class="value-title">Integrity</div>
+        <p class="value-desc">We do honest work. No shortcuts, no deception — what we say is what we deliver, every time.</p>
+      </div>
+      <div class="value-card">
+        <span class="value-icon">🤝</span>
+        <div class="value-title">Service</div>
+        <p class="value-desc">We build with others in mind. Good software serves people — and we take that calling seriously.</p>
+      </div>
+      <div class="value-card">
+        <span class="value-icon">💡</span>
+        <div class="value-title">Stewardship</div>
+        <p class="value-desc">We treat every project as a responsibility. Resources, time, and trust are handled with care.</p>
+      </div>
+      <div class="value-card">
+        <span class="value-icon">🕊</span>
+        <div class="value-title">Humility</div>
+        <p class="value-desc">We don't have all the answers. We stay teachable, give credit freely, and keep our ego out of the code.</p>
+      </div>
+    </div>
+
+    <div class="values-verse">
+      <blockquote>Whatever you do, work at it with all your heart, as working for the Lord, not for human masters.</blockquote>
+      <cite>Colossians 3:23</cite>
+    </div>
+  </section>
+
+  <div class="line-divider"></div>
+
+  <!-- TEAM -->
+  <section id="team">
+    <p class="section-label">Team</p>
+    <h2>The people<br>behind it.</h2>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">N</div>
+        <div class="team-name">Nosentosen</div>
+        <div class="team-role">Founder</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="line-divider"></div>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="contact-inner">
+      <p class="section-label">Contact</p>
+      <h2>Let's talk.</h2>
+      <p style="color:var(--muted);">Have an idea, a question, or just want to say hello? Reach out — we'd love to hear from you.</p>
+      <a class="contact-link" href="mailto:arkbytes.ltd@zohomail.eu">arkbytes.ltd@zohomail.eu</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Ark<span>bytes</span></div>
+    <p>© <span id="yr"></span> Arkbytes. All rights reserved.</p>
+  </footer>
+
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // Fetch GitHub repos
+    async function loadRepos() {
+      const grid = document.getElementById('repo-grid');
+      try {
+        const res = await fetch('https://api.github.com/users/ArkbytesLTD/repos?sort=updated&per_page=12');
+        if (!res.ok) throw new Error('GitHub API error');
+        const repos = await res.json();
+
+        grid.innerHTML = '';
+
+        if (!repos.length) {
+          grid.innerHTML = `<div class="card-empty">
+            <span class="icon">⬡</span>
+            <strong style="color:var(--text);font-family:'Syne',sans-serif;">No repos yet</strong>
+            <p>Nothing public yet — check back soon.</p>
+          </div>`;
+          return;
+        }
+
+        repos.forEach(repo => {
+          const card = document.createElement('a');
+          card.className = 'repo-card';
+          card.href = repo.html_url;
+          card.target = '_blank';
+          card.rel = 'noopener';
+
+          const desc = repo.description || 'No description provided.';
+          const lang = repo.language ? `<span class="repo-meta-item"><span class="lang-dot"></span>${repo.language}</span>` : '';
+          const stars = repo.stargazers_count > 0 ? `<span class="repo-meta-item">★ ${repo.stargazers_count}</span>` : '';
+          const updated = new Date(repo.updated_at).toLocaleDateString('en-GB', { year:'numeric', month:'short' });
+
+          card.innerHTML = `
+            <div class="repo-card-name">${repo.name}</div>
+            <div class="repo-card-desc">${desc}</div>
+            <div class="repo-card-meta">
+              ${lang}
+              ${stars}
+              <span class="repo-meta-item">Updated ${updated}</span>
+            </div>
+            <div class="repo-card-arrow">View on GitHub →</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        grid.innerHTML = `<div class="card-empty">
+          <span class="icon">⚠</span>
+          <strong style="color:var(--text);font-family:'Syne',sans-serif;">Could not load repos</strong>
+          <p>Check our <a href="https://github.com/ArkbytesLTD" target="_blank" style="color:var(--water);">GitHub page</a> directly.</p>
+        </div>`;
+      }
+    }
+
+    loadRepos();
+  </script>
+
+</body>
+</html>
